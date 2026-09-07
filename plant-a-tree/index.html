@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>种一棵树 · 种子小森林</title>
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@600;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+/* ============ 基础 ============ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: var(--ink);
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: none;
+  background: #f4efe4;
+}
+button { font-family: inherit; border: none; cursor: pointer; background: none; }
+:root {
+  --ink: #2e4b3a;
+  --ink-soft: #55705f;
+  --cream: #f4efe4;
+  --soil: #8a5a3b;
+  --leaf: #5e9c54;
+  --gold: #f2c14e;
+}
+/* ============ 天空主题 ============ */
+:root, [data-sky="day"] {
+  --sky-top: #9ecfee; --sky-bottom: #eaf4e4;
+  --hill1: #a8c79b; --hill2: #88b48a;
+  --grass-top: #7db36f; --grass-bottom: #5c934f;
+  --glow: rgba(255, 236, 180, .55);
+  --celestial: #ffd97a;
+  --cloud: rgba(255, 255, 255, .85);
+  --stars-o: 0;
+}
+[data-sky="dawn"] {
+  --sky-top: #f2b8a0; --sky-bottom: #fbe8cf;
+  --hill1: #c9b59a; --hill2: #a8a184;
+  --grass-top: #8fae6d; --grass-bottom: #6d8f53;
+  --glow: rgba(255, 196, 150, .5);
+  --celestial: #ffc27e;
+  --cloud: rgba(255, 244, 224, .8);
+  --stars-o: 0;
+}
+[data-sky="dusk"] {
+  --sky-top: #3d4368; --sky-bottom: #e5a06e;
+  --hill1: #7d6f83; --hill2: #5f5a70;
+  --grass-top: #6d8457; --grass-bottom: #4c6a45;
+  --glow: rgba(255, 170, 110, .45);
+  --celestial: #ffb26b;
+  --cloud: rgba(255, 200, 170, .55);
+  --stars-o: 0;
+}
+[data-sky="night"] {
+  --sky-top: #131a30; --sky-bottom: #2c3b5e;
+  --hill1: #3a4560; --hill2: #2a3550;
+  --grass-top: #3e5c48; --grass-bottom: #263c2f;
+  --glow: rgba(120, 160, 220, .25);
+  --celestial: #e8ecf4;
+  --cloud: rgba(200, 214, 236, .3);
+  --stars-o: 1;
+}
+/* ============ 场景背景 ============ */
+#app { position: fixed; inset: 0; overflow: hidden; }
+.scene { position: absolute; inset: 0; z-index: 0; }
+.sky-glow {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%);
+  transition: background 1.2s ease;
+}
+.sky-glow::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(120% 55% at 50% -10%, var(--glow), transparent 60%);
+}
+.celestial {
+  position: absolute; top: 8%; right: 12%;
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--celestial);
+  box-shadow: 0 0 42px 16px var(--glow);
+  transition: background 1.2s ease;
+}
+[data-sky="night"] .celestial {
+  box-shadow: inset -8px -4px 0 rgba(120,130,160,.35), 0 0 24px 8px rgba(200,215,245,.25);
+}
+.stars {
+  position: absolute; inset: 0; opacity: var(--stars-o);
+  background-image:
+    radial-gradient(2px 2px at 12% 18%, #f4f6ff 50%, transparent 55%),
+    radial-gradient(1.5px 1.5px at 32% 9%, #e6ecff 50%, transparent 55%),
+    radial-gradient(2px 2px at 58% 22%, #f4f6ff 50%, transparent 55%),
+    radial-gradient(1.5px 1.5px at 74% 12%, #e6ecff 50%, transparent 55%),
+    radial-gradient(2px 2px at 88% 26%, #f4f6ff 50%, transparent 55%),
+    radial-gradient(1.5px 1.5px at 22% 32%, #e6ecff 50%, transparent 55%),
+    radial-gradient(2px 2px at 45% 28%, #f4f6ff 50%, transparent 55%),
+    radial-gradient(1.5px 1.5px at 66% 35%, #e6ecff 50%, transparent 55%),
+    radial-gradient(2px 2px at 8% 42%, #f4f6ff 50%, transparent 55%),
+    radial-gradient(1.5px 1.5px at 38% 45%, #e6ecff 50%, transparent 55%),
+    radial-gradient(2px 2px at 80% 48%, #f4f6ff 50%, transparent 55%),
+    radial-gradient(1.5px 1.5px at 92% 40%, #e6ecff 50%, transparent 55%);
+  transition: opacity 1.2s ease;
+}
+.clouds { position: absolute; inset: 0; overflow: hidden; }
+.cloud {
+  position: absolute; display: block; height: 26px; width: 110px;
+  border-radius: 999px; background: var(--cloud);
+  filter: blur(7px); opacity: .8;
+  animation: drift linear infinite;
+}
+.c1 { top: 16%; left: -140px; animation-duration: 65s; }
+.c2 { top: 26%; left: -180px; animation-duration: 95s; transform: scale(.75); }
+.c3 { top: 9%; left: -160px; animation-duration: 130s; transform: scale(.5); }
+@keyframes drift { to { transform: translateX(140vw); } }
+.hills { position: absolute; left: 0; right: 0; bottom: 74%; height: 34%; }
+.hill {
+  position: absolute; display: block; left: -8%; right: -8%; height: 100%;
+  border-radius: 50% 50% 0 0 / 72% 72% 0 0;
+  transition: background 1.2s ease;
+}
+.h1 { bottom: -38%; background: var(--hill1); }
+.h2 { bottom: -58%; background: var(--hill2); }
+.ground {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 26%;
+  background: linear-gradient(180deg, var(--grass-top), var(--grass-bottom) 62%);
+  border-radius: 50% 50% 0 0 / 26% 26% 0 0;
+  transition: background 1.2s ease;
+}
+.ground::before {
+  content: ""; position: absolute; left: 0; right: 0; top: -10px; height: 20px;
+  background: var(--grass-top); filter: blur(4px); opacity: .7;
+}
+/* 土堆（种子阶段） */
+.mound {
+  position: absolute; left: 50%; bottom: 24.2%;
+  width: 74px; height: 26px; transform: translateX(-50%);
+  background: radial-gradient(ellipse at 50% 100%, var(--soil), rgba(138,90,59,.55));
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  opacity: 0; z-index: 1;
+}
+.mound.show { opacity: 1; }
+.mound::after {
+  content: ""; position: absolute; left: 12%; right: 12%; bottom: 0; height: 55%;
+  background: repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, transparent 2px 9px);
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+}
+/* ============ 主画布 ============ */
+#tree-canvas { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; display: block; }
+/* ============ 舞台 & 视图 ============ */
+.stage { position: absolute; inset: 0; z-index: 2; }
+.view {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column; align-items: center;
+  padding: calc(20px + env(safe-area-inset-top)) 22px calc(22px + env(safe-area-inset-bottom));
+}
+.view.active { display: flex; }
+/* ============ 开始屏 ============ */
+#view-start { justify-content: space-between; text-align: center; padding-top: calc(9vh + env(safe-area-inset-top)); }
+.brand-mark { width: 120px; height: 120px; margin-bottom: 18px; filter: drop-shadow(0 10px 16px rgba(46,75,58,.18)); }
+.brand-mark svg { width: 100%; height: 100%; }
+.title {
+  font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-size: 44px; font-weight: 900; letter-spacing: .06em; line-height: 1.25;
+}
+.title .leaf-accent { color: var(--leaf); }
+.subtitle { margin-top: 12px; font-size: 15px; letter-spacing: .14em; color: var(--ink-soft); }
+.start-zone { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 100%; margin-bottom: 4vh; }
+.btn {
+  min-height: 52px; padding: 0 34px; border-radius: 999px;
+  font-size: 17px; font-weight: 700; letter-spacing: .08em;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+}
+.btn:active { transform: scale(.96); }
+.btn-primary {
+  background: linear-gradient(180deg, #6fae62, #4f8f46);
+  color: #fff; box-shadow: 0 10px 24px rgba(79,143,70,.35);
+}
+.btn-primary:hover { box-shadow: 0 12px 28px rgba(79,143,70,.45); }
+.btn-ghost {
+  background: rgba(255,255,255,.55); color: var(--ink);
+  border: 1.5px solid rgba(46,75,58,.18); backdrop-filter: blur(4px);
+}
+.garden-entry { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-soft); }
+.garden-entry .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); }
+/* ============ 抽卡屏 ============ */
+#view-card { justify-content: center; gap: 26px; }
+.card-wrap { perspective: 1200px; width: 100%; max-width: 340px; }
+.seed-card {
+  position: relative; width: 100%; aspect-ratio: 5 / 6.4;
+  transform-style: preserve-3d; transition: transform .8s cubic-bezier(.4,.1,.2,1);
+}
+.seed-card.flipped { transform: rotateY(180deg); }
+.card-face {
+  position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  border-radius: 22px; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  box-shadow: 0 18px 40px rgba(46,75,58,.22);
+}
+.card-back { background: linear-gradient(160deg, #5a7d4f, #3f5f3a 70%); }
+.card-back::before {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(90% 70% at 50% 0%, rgba(255,255,255,.14), transparent 55%);
+}
+.card-back-mark {
+  width: 84px; height: 84px; opacity: .95;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,.25));
+}
+.card-back-text { margin-top: 18px; font-size: 14px; letter-spacing: .34em; color: rgba(255,255,255,.85); }
+.card-front { transform: rotateY(180deg); background: linear-gradient(180deg, #fbf6ec, #f2ead9); }
+.card-front::before {
+  content: ""; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(138,90,59,.10) 1px, transparent 1.4px);
+  background-size: 16px 16px;
+}
+.card-rarity {
+  position: absolute; top: 18px; left: 18px;
+  font-size: 12px; font-weight: 700; letter-spacing: .18em;
+  padding: 6px 14px; border-radius: 999px; color: #fff;
+}
+.card-seed { width: 128px; height: 128px; margin-bottom: 6px; }
+.card-seed svg { width: 100%; height: 100%; }
+.card-name {
+  font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  font-size: 34px; font-weight: 900; letter-spacing: .1em;
+}
+.card-poem { margin-top: 12px; padding: 0 26px; font-size: 14px; line-height: 1.7; color: var(--ink-soft); text-align: center; }
+.card-tag { margin-top: 16px; font-size: 12px; letter-spacing: .22em; color: #a08970; }
+.card-actions { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 340px; align-items: center; }
+.hidden { display: none !important; }
+/* ============ 种植屏 ============ */
+#view-grow { justify-content: flex-end; padding-top: calc(16px + env(safe-area-inset-top)); }
+.grow-head {
+  position: absolute; top: calc(16px + env(safe-area-inset-top)); left: 22px; right: 22px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.grow-title { display: flex; align-items: center; gap: 10px; }
+.grow-name { font-family: "Noto Serif SC", "Songti SC", "SimSun", serif; font-size: 22px; font-weight: 700; letter-spacing: .08em; }
+.rarity-chip { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; color: #fff; letter-spacing: .12em; }
+.grow-clock { font-size: 15px; font-weight: 700; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.grow-status {
+  width: 100%; max-width: 380px; margin-bottom: calc(30px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 12px;
+}
+.grow-tip { font-size: 14px; letter-spacing: .1em; color: var(--ink); text-align: center; min-height: 22px; }
+.progress-track {
+  width: 100%; height: 10px; border-radius: 999px;
+  background: rgba(46,75,58,.12); overflow: hidden; backdrop-filter: blur(2px);
+}
+.progress-fill {
+  height: 100%; width: 0%; border-radius: 999px;
+  background: linear-gradient(90deg, #8fce6a, var(--leaf), var(--gold));
+  transition: width .3s linear;
+}
+.progress-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-soft); letter-spacing: .06em; }
+/* ============ 完成屏 ============ */
+#view-done { justify-content: flex-end; }
+.done-panel {
+  width: 100%; max-width: 380px; text-align: center;
+  background: rgba(250,247,238,.82); backdrop-filter: blur(10px);
+  border: 1px solid rgba(46,75,58,.1); border-radius: 22px;
+  padding: 24px 26px 26px; margin-bottom: calc(26px + env(safe-area-inset-bottom));
+  box-shadow: 0 16px 40px rgba(46,75,58,.18);
+}
+.done-kicker { font-size: 12px; letter-spacing: .3em; color: var(--gold); font-weight: 700; }
+.done-name { margin-top: 8px; font-family: "Noto Serif SC", "Songti SC", "SimSun", serif; font-size: 32px; font-weight: 900; letter-spacing: .08em; }
+.done-desc { margin-top: 12px; font-size: 14px; line-height: 1.8; color: var(--ink-soft); }
+.done-collect {
+  margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 13px; color: var(--ink-soft);
+}
+.done-collect .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--leaf); }
+.done-actions { margin-top: 22px; display: flex; flex-direction: column; gap: 12px; }
+/* ============ 图鉴 ============ */
+.overlay {
+  position: absolute; inset: 0; z-index: 5;
+  display: none; flex-direction: column;
+  background: linear-gradient(180deg, rgba(242,235,219,.96), rgba(234,224,205,.97));
+  backdrop-filter: blur(8px);
+  padding: calc(22px + env(safe-area-inset-top)) 22px calc(22px + env(safe-area-inset-bottom));
+}
+.overlay.active { display: flex; }
+.overlay-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.overlay-title { font-family: "Noto Serif SC", "Songti SC", "SimSun", serif; font-size: 26px; font-weight: 900; letter-spacing: .1em; }
+.icon-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(46,75,58,.08); color: var(--ink);
+  transition: background .2s ease;
+}
+.icon-btn:hover { background: rgba(46,75,58,.16); }
+.icon-btn svg { width: 20px; height: 20px; }
+.collect-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.collect-bar .bar { flex: 1; height: 8px; border-radius: 999px; background: rgba(46,75,58,.12); overflow: hidden; }
+.collect-bar .fill { height: 100%; background: linear-gradient(90deg, var(--leaf), var(--gold)); border-radius: 999px; transition: width .5s ease; }
+.collect-bar .num { font-size: 13px; font-weight: 700; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 460px; margin: 0 auto; }
+.grid-item {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.6); border: 1.5px solid rgba(46,75,58,.1);
+  border-radius: 18px; padding: 18px 10px 14px;
+  min-height: 148px; justify-content: center;
+}
+.grid-item.seen { background: rgba(255,255,255,.85); border-color: rgba(94,156,84,.35); }
+.grid-item.unseen { opacity: .55; }
+.grid-icon { width: 64px; height: 64px; }
+.grid-icon svg { width: 100%; height: 100%; }
+.grid-name { font-size: 14px; font-weight: 700; letter-spacing: .1em; }
+.grid-rarity { font-size: 11px; color: var(--ink-soft); letter-spacing: .16em; }
+.grid-question { font-size: 30px; font-weight: 900; color: rgba(46,75,58,.35); line-height: 1; }
+.overlay-foot { margin-top: auto; padding-top: 18px; text-align: center; }
+/* ============ 动效降级 ============ */
+@media (prefers-reduced-motion: reduce) {
+  .cloud { animation: none; }
+  .seed-card { transition: none; }
+  .sky-glow, .ground, .hill, .celestial, .stars { transition: none; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== 场景背景 ===== -->
+  <div class="scene" aria-hidden="true">
+    <div class="sky-glow"></div>
+    <div class="stars"></div>
+    <div class="celestial"></div>
+    <div class="clouds"><i class="cloud c1"></i><i class="cloud c2"></i><i class="cloud c3"></i></div>
+    <div class="hills"><i class="hill h1"></i><i class="hill h2"></i></div>
+    <div class="ground"></div>
+    <div class="mound" id="mound"></div>
+  </div>
+
+  <!-- ===== 生长画布 ===== -->
+  <canvas id="tree-canvas"></canvas>
+
+  <!-- ===== 舞台 ===== -->
+  <main class="stage">
+
+    <!-- 开始屏 -->
+    <section class="view active" id="view-start">
+      <div>
+        <div class="brand-mark">
+          <svg viewBox="0 0 120 120" fill="none" aria-hidden="true">
+            <circle cx="60" cy="60" r="58" fill="#e9dfc8"/>
+            <path d="M60 96V66" stroke="#8a5a3b" stroke-width="5" stroke-linecap="round"/>
+            <path d="M60 80c-4-12-20-14-24-28 10 4 20 6 24 14z" fill="#6fae62"/>
+            <path d="M60 74c4-12 20-14 24-28-10 4-20 6-24 14z" fill="#5e9c54"/>
+            <path d="M60 60c-3-9-14-11-17-21 8 3 14 5 17 10z" fill="#8fce6a"/>
+            <path d="M60 56c3-9 14-11 17-21-8 3-14 5-17 10z" fill="#7dbf5e"/>
+            <circle cx="60" cy="52" r="5" fill="#f2c14e"/>
+          </svg>
+        </div>
+        <h1 class="title">种一棵<span class="leaf-accent">树</span></h1>
+        <p class="subtitle">抽一颗种子 · 看一棵树长大</p>
+      </div>
+      <div class="start-zone">
+        <button class="btn btn-primary" id="btn-pick" type="button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12m0-8a6 6 0 0 0-6 6h12a6 6 0 0 0-6-6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M5 19h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          抽取种子
+        </button>
+        <button class="btn btn-ghost garden-entry" id="btn-garden" type="button">
+          <span class="dot"></span>我的林园 · 已收集 <span id="garden-count">0</span>/8
+        </button>
+      </div>
+    </section>
+
+    <!-- 抽卡屏 -->
+    <section class="view" id="view-card">
+      <div class="card-wrap">
+        <div class="seed-card" id="seed-card">
+          <div class="card-face card-back">
+            <div class="card-back-mark">
+              <svg viewBox="0 0 84 84" fill="none" aria-hidden="true">
+                <path d="M42 68V44" stroke="#f4efe4" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M42 56c-3-9-14-11-17-21 8 3 14 5 17 10z" fill="#cfe3b8"/>
+                <path d="M42 51c3-9 14-11 17-21-8 3-14 5-17 10z" fill="#e4efcb"/>
+                <circle cx="42" cy="45" r="4" fill="#f2c14e"/>
+              </svg>
+            </div>
+            <div class="card-back-text">一颗未知的种子</div>
+          </div>
+          <div class="card-face card-front">
+            <span class="card-rarity" id="card-rarity">常见</span>
+            <div class="card-seed" id="card-seed-svg"></div>
+            <div class="card-name" id="card-name"></div>
+            <div class="card-poem" id="card-poem"></div>
+            <div class="card-tag" id="card-tag"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-primary" id="btn-flip" type="button">翻开种子</button>
+        <button class="btn btn-primary hidden" id="btn-plant" type="button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21V10M12 14a6 6 0 0 1 6-6M12 11a6 6 0 0 0-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          把它种下
+        </button>
+      </div>
+    </section>
+
+    <!-- 种植屏 -->
+    <section class="view" id="view-grow">
+      <div class="grow-head">
+        <div class="grow-title">
+          <span class="grow-name" id="grow-name"></span>
+          <span class="rarity-chip" id="grow-rarity">常见</span>
+        </div>
+        <span class="grow-clock" id="grow-clock">约 18 秒</span>
+      </div>
+      <div class="grow-status">
+        <p class="grow-tip" id="grow-tip">种子正在破土…</p>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="progress-meta"><span id="progress-pct">0%</span><span>生长中</span></div>
+      </div>
+    </section>
+
+    <!-- 完成屏 -->
+    <section class="view" id="view-done">
+      <div class="done-panel">
+        <div class="done-kicker" id="done-kicker">已收录林园</div>
+        <div class="done-name" id="done-name"></div>
+        <p class="done-desc" id="done-desc"></p>
+        <div class="done-collect"><span class="dot"></span>林园图鉴 <span id="done-count">1</span>/8</div>
+        <div class="done-actions">
+          <button class="btn btn-primary" id="btn-again" type="button">再抽一颗种子</button>
+          <button class="btn btn-ghost" id="btn-garden-done" type="button">看看我的林园</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== 图鉴 ===== -->
+  <div class="overlay" id="overlay-collection">
+    <div class="overlay-head">
+      <span class="overlay-title">我的林园</span>
+      <button class="icon-btn" id="btn-close-collection" type="button" aria-label="关闭">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="collect-bar">
+      <span class="num" id="collect-num">0/8</span>
+      <div class="bar"><div class="fill" id="collect-fill"></div></div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="overlay-foot">
+      <button class="btn btn-primary" id="btn-back-plant" type="button">再种一棵树</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+/* ================================================================
+   种一棵树 · 种子小森林
+   玩法：抽取随机种子 → 10–30 秒随机时长生长 → 收获一棵独一无二的树
+   ================================================================ */
+
+/* ---------- 树木物种库 ---------- */
+const RARITY = {
+  common:  { label: "常见", color: "#5e9c54" },
+  rare:    { label: "稀有", color: "#3f7fb5" },
+  legend:  { label: "传说", color: "#c07a3f" },
+};
+
+const SPECIES = [
+  {
+    id: "ginkgo", name: "银杏", rarity: "common", tag: "金叶 · 乔木",
+    poem: "活化石。每一片扇形叶，都是亿年时光的签名。",
+    seedColor: "#d9ad45",
+    depth: 7, trunkH: 170, trunkW: 15, lenRatio: 0.74, spread: 0.42,
+    trunkColor: "#7a5a3a", twigColor: "#8f6a46",
+    leaves: ["#e9c96b", "#d9ad45"], leafShape: "fan", leafSize: 15,
+    bloom: false, fruit: false,
+  },
+  {
+    id: "cherry", name: "樱花", rarity: "rare", tag: "绯云 · 乔木",
+    poem: "一阵风过，花便有了心事。",
+    seedColor: "#e58aa0",
+    depth: 7, trunkH: 150, trunkW: 12, lenRatio: 0.72, spread: 0.52,
+    trunkColor: "#6f4a38", twigColor: "#85604a",
+    leaves: ["#8fbf7f"], leafShape: "round", leafSize: 12,
+    bloom: true, flowers: ["#f5a3b8", "#f7b7c8"], fruit: false,
+  },
+  {
+    id: "maple", name: "红枫", rarity: "rare", tag: "霜焰 · 乔木",
+    poem: "秋天在它身上，点了一把火。",
+    seedColor: "#c9553a",
+    depth: 8, trunkH: 155, trunkW: 11, lenRatio: 0.70, spread: 0.5,
+    trunkColor: "#5f4633", twigColor: "#74543c",
+    leaves: ["#d96b4f", "#c04f38"], leafShape: "maple", leafSize: 14,
+    bloom: false, fruit: false,
+  },
+  {
+    id: "pine", name: "松树", rarity: "common", tag: "苍鳞 · 针叶",
+    poem: "风雪里，它是最后站着的那一个。",
+    seedColor: "#3f6f4f",
+    depth: 9, trunkH: 185, trunkW: 13, lenRatio: 0.62, spread: 0.3,
+    trunkColor: "#5b4632", twigColor: "#6e5639",
+    leaves: ["#3f6f4f", "#2f5a3e"], leafShape: "needle", leafSize: 16,
+    bloom: false, fruit: false,
+  },
+  {
+    id: "oak", name: "橡树", rarity: "common", tag: "橡木 · 乔木",
+    poem: "它把时间一圈一圈，藏进年轮。",
+    seedColor: "#8a5a3b",
+    depth: 7, trunkH: 160, trunkW: 16, lenRatio: 0.72, spread: 0.46,
+    trunkColor: "#6d4c33", twigColor: "#815d40",
+    leaves: ["#5e8a4a", "#4a7540"], leafShape: "oval", leafSize: 15,
+    bloom: false, fruit: false,
+  },
+  {
+    id: "birch", name: "白桦", rarity: "rare", tag: "素羽 · 乔木",
+    poem: "月光照在树皮上，树就白了。",
+    seedColor: "#cfc9ba",
+    depth: 8, trunkH: 190, trunkW: 10, lenRatio: 0.70, spread: 0.38,
+    trunkColor: "#d8d4c8", twigColor: "#c4bfb2",
+    leaves: ["#9dbd7a", "#7ba35f"], leafShape: "round", leafSize: 12,
+    bloom: false, fruit: false,
+  },
+  {
+    id: "apple", name: "苹果树", rarity: "rare", tag: "果香 · 乔木",
+    poem: "甜，是它写给秋天的一封信。",
+    seedColor: "#d8603f",
+    depth: 7, trunkH: 145, trunkW: 13, lenRatio: 0.71, spread: 0.55,
+    trunkColor: "#6d4c33", twigColor: "#815d40",
+    leaves: ["#6f9a55"], leafShape: "oval", leafSize: 14,
+    bloom: false, fruit: true, fruitColor: "#e05a45",
+  },
+  {
+    id: "bodhi", name: "菩提", rarity: "legend", tag: "慧光 · 乔木",
+    poem: "每一片叶子，都藏着一句答案。",
+    seedColor: "#4f9e6b",
+    depth: 8, trunkH: 175, trunkW: 15, lenRatio: 0.73, spread: 0.48,
+    trunkColor: "#6a5540", twigColor: "#7d6a4e",
+    leaves: ["#4f9e6b", "#6fc08a"], leafShape: "round", leafSize: 14,
+    bloom: false, fruit: false, glow: true,
+  },
+];
+
+/* ---------- 状态 ---------- */
+const SAVE_KEY = "tree-garden-collection-v1";
+const $ = (id) => document.getElementById(id);
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let state = {
+  view: "start",
+  species: null,          // 当前物种
+  durationMs: 0,          // 生长时长
+  startedAt: 0,           // performance.now() 基准
+  pauseOffset: 0,         // 累计暂停毫秒
+  pausedAt: 0,
+  raf: 0,
+  seed: 0,                // 树形随机种子
+  sky: "day",
+  particles: [],          // {kind, x, y, vx, vy, r, phase, color, rot, vr, life}
+  collect: loadCollect(),
+  cardFlipped: false,
+};
+
+function loadCollect() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (data && typeof data === "object" && data.collected) return data;
+    }
+  } catch (e) { /* 隐私模式等 */ }
+  return { collected: {}, total: 0 };
+}
+function saveCollect() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state.collect)); } catch (e) { /* 忽略 */ }
+}
+function addCollect(id) {
+  const c = state.collect;
+  if (!c.collected[id]) { c.collected[id] = 0; c.total += 1; }
+  c.collected[id] += 1;
+  saveCollect();
+}
+
+/* ---------- 确定性随机（每帧树形一致） ---------- */
+function makeRand(seed) {
+  let s = seed >>> 0;
+  return function () {
+    s = (s + 0x6D2B79F5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* ---------- 种子抽取（加权） ---------- */
+function pickSpecies() {
+  const pool = [];
+  SPECIES.forEach((sp, i) => {
+    const w = sp.rarity === "common" ? 6 : (sp.rarity === "rare" ? 3.3 : 0.7);
+    pool.push([i, w]);
+  });
+  const total = pool.reduce((s, p) => s + p[1], 0);
+  let r = Math.random() * total;
+  for (const [i, w] of pool) { r -= w; if (r <= 0) return SPECIES[i]; }
+  return SPECIES[0];
+}
+
+/* ---------- 视图切换 ---------- */
+function showView(name) {
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  $("view-" + name).classList.add("active");
+  state.view = name;
+}
+
+/* ---------- 天空环境 ---------- */
+function pickSky() {
+  const skies = ["day", "day", "dawn", "dusk", "night"];
+  const sky = skies[Math.floor(Math.random() * skies.length)];
+  document.body.dataset.sky = sky;
+  state.sky = sky;
+}
+
+/* ================================================================
+   分形树绘制
+   ================================================================ */
+const canvas = $("tree-canvas");
+const ctx = canvas.getContext("2d");
+let cw = 0, ch = 0, dpr = 1;
+const GROUND_Y = 0.74; // 地面线在画布高度 74%
+
+function resizeCanvas() {
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  cw = window.innerWidth; ch = window.innerHeight;
+  canvas.width = Math.round(cw * dpr);
+  canvas.height = Math.round(ch * dpr);
+  canvas.style.width = cw + "px";
+  canvas.style.height = ch + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener("resize", () => {
+  resizeCanvas();
+  // 定格后窗口变化时重绘成品树
+  if ((state.view === "grow" || state.view === "done") && state._celebrated && state.species) {
+    clearCanvas();
+    drawParticles();
+    drawTree(state.species, 1);
+  }
+});
+
+function clearCanvas() {
+  ctx.clearRect(0, 0, cw, ch);
+}
+
+/* 画种子（破土前） */
+function drawSeed(spec, p) {
+  // p: 0..1 种子阶段进度（破土）
+  const gx = cw * 0.5, gy = ch * GROUND_Y;
+  const rise = p * 12; // 种子从土下上浮
+  const x = gx, y = gy - 4 + rise;
+  const r = 7;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(Math.sin(p * Math.PI) * 0.2);
+  // 种皮
+  ctx.fillStyle = spec.seedColor;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, r, r * 0.72, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(0,0,0,.18)";
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.5, 0);
+  ctx.quadraticCurveTo(0, r * 0.5, r * 0.5, 0);
+  ctx.stroke();
+  // 顶部小芽
+  ctx.strokeStyle = "#5e9c54";
+  ctx.lineWidth = 1.8;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(0, -r * 0.6);
+  ctx.quadraticCurveTo(1, -r * 0.6 - 6, 3, -r * 0.6 - 9);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/* 画小芽（刚破土） */
+function drawSprout(spec, t) {
+  // t: 0..1 芽生长
+  const gx = cw * 0.5, gy = ch * GROUND_Y;
+  const h = 6 + t * 22;
+  ctx.save();
+  ctx.strokeStyle = "#5e9c54";
+  ctx.lineWidth = 2.4;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(gx, gy);
+  ctx.quadraticCurveTo(gx + 1, gy - h * 0.6, gx + 1, gy - h);
+  ctx.stroke();
+  // 子叶
+  const s = t;
+  ctx.fillStyle = "#8fce6a";
+  ctx.beginPath();
+  ctx.ellipse(gx - 2, gy - h + 2, 5 * s, 3 * s, -0.6, 0, Math.PI * 2);
+  ctx.ellipse(gx + 4, gy - h + 2, 5 * s, 3 * s, 0.6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+/* 叶子形状 */
+function drawLeaf(ctx, x, y, angle, spec, size, rand) {
+  const col = spec.leaves[Math.floor(rand() * spec.leaves.length)];
+  ctx.save();
+  ctx.translate(x, y);
+  if (spec.leafShape === "fan") {
+    // 银杏扇形叶
+    ctx.rotate(angle);
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.arc(0, 0, size, -0.55, 0.55);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "rgba(120,90,40,.4)";
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(Math.cos(-0.28) * size, Math.sin(-0.28) * size);
+    ctx.moveTo(0, 0); ctx.lineTo(Math.cos(0.28) * size, Math.sin(0.28) * size);
+    ctx.stroke();
+  } else if (spec.leafShape === "needle") {
+    // 松针簇
+    ctx.rotate(angle);
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 1;
+    ctx.lineCap = "round";
+    for (let i = -3; i <= 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(i * 0.32) * size, Math.sin(i * 0.32) * size);
+      ctx.stroke();
+    }
+  } else if (spec.leafShape === "maple") {
+    // 掌状枫叶（三瓣椭圆交叠）
+    ctx.rotate(angle);
+    ctx.fillStyle = col;
+    ctx.save();
+    ctx.rotate(-0.5); ctx.beginPath(); ctx.ellipse(size * 0.55, 0, size * 0.55, size * 0.34, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    ctx.save();
+    ctx.rotate(0.5); ctx.beginPath(); ctx.ellipse(size * 0.55, 0, size * 0.55, size * 0.34, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    ctx.beginPath(); ctx.ellipse(size * 0.5, 0, size * 0.6, size * 0.36, 0, 0, Math.PI * 2); ctx.fill();
+  } else {
+    // round / oval
+    ctx.rotate(angle);
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    if (spec.leafShape === "oval") ctx.ellipse(size * 0.5, 0, size * 0.62, size * 0.34, 0, 0, Math.PI * 2);
+    else ctx.arc(size * 0.5, 0, size * 0.42, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* 画一朵花 */
+function drawFlower(ctx, x, y, angle, spec, size, rand) {
+  const col = spec.flowers[Math.floor(rand() * spec.flowers.length)];
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.fillStyle = col;
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.ellipse(Math.cos(a) * size * 0.6, Math.sin(a) * size * 0.6, size * 0.42, size * 0.28, a, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.fillStyle = "#f2d06b";
+  ctx.beginPath(); ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+/* 分形树 */
+function drawTree(spec, g) {
+  // g: 0..1 生长进度（扣除种子/芽阶段）
+  const rand = makeRand(state.seed);
+  const D = spec.depth;
+  const growDepth = g * (D + 1);
+  const gx = cw * 0.5;
+  const gy = ch * GROUND_Y;
+  const unit = Math.min(cw * 0.62, ch * 0.5);
+  const trunkLen = spec.trunkH * (unit / 170);
+  const trunkW = Math.max(2, spec.trunkW * (unit / 170) * 1.15 * (0.35 + 0.65 * Math.min(1, g * 1.5)));
+
+  function branch(x, y, angle, len, width, depth) {
+    const t = growDepth - depth;
+    if (t <= 0.02) return;
+    const f = Math.min(1, t);
+    const endX = x + Math.cos(angle) * len * f;
+    const endY = y + Math.sin(angle) * len * f;
+    // 枝干
+    const col = depth >= D - 2 ? spec.twigColor : spec.trunkColor;
+    ctx.strokeStyle = col;
+    ctx.lineWidth = Math.max(0.7, width * (0.6 + 0.4 * f));
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+    // 末层叶子 / 花 / 果
+    if (depth >= D - 2 && f > 0.55) {
+      const leafCount = spec.leafShape === "needle" ? 2 : 3;
+      const leafF = Math.min(1, (f - 0.55) / 0.45);
+      for (let i = 0; i < leafCount; i++) {
+        const off = (i - (leafCount - 1) / 2) * 0.5;
+        const a = angle + Math.PI / 2 + off * 1.05 + (rand() - 0.5) * 0.3;
+        const lx = endX + Math.cos(a) * 3;
+        const ly = endY + Math.sin(a) * 3;
+        const size = spec.leafSize * (0.7 + 0.5 * leafF) * (unit / 170);
+        if (spec.bloom && i === 0) drawFlower(ctx, lx, ly, a, spec, size * 0.9, rand);
+        else drawLeaf(ctx, lx, ly, a, spec, size, rand);
+      }
+      // 果实
+      if (spec.fruit && f > 0.8) {
+        ctx.fillStyle = spec.fruitColor;
+        ctx.beginPath();
+        ctx.arc(endX + rand() * 8 - 4, endY + rand() * 6 - 3, 2.6 * (unit / 170) + 1.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    // 分叉
+    if (depth < D && f >= 0.4) {
+      const nLen = len * spec.lenRatio;
+      const nW = Math.max(0.7, width * 0.7);
+      const sp = spec.spread * (0.8 + rand() * 0.45);
+      branch(endX, endY, angle - sp, nLen, nW, depth + 1);
+      branch(endX, endY, angle + sp, nLen, nW, depth + 1);
+    }
+  }
+  branch(gx, gy, -Math.PI / 2, trunkLen, trunkW, 0);
+}
+
+/* ================================================================
+   粒子系统
+   ================================================================ */
+function spawnAmbient() {
+  const p = state.particles;
+  const n = reducedMotion ? 10 : 26;
+  for (let i = 0; i < n; i++) {
+    const night = state.sky === "night";
+    p.push({
+      kind: night ? "firefly" : "light",
+      x: Math.random() * cw,
+      y: Math.random() * ch * 0.7,
+      vx: (Math.random() - 0.5) * 0.2,
+      vy: night ? (Math.random() - 0.5) * 0.25 : -(0.08 + Math.random() * 0.22),
+      r: night ? 1.6 + Math.random() * 1.8 : 1 + Math.random() * 1.6,
+      phase: Math.random() * Math.PI * 2,
+      color: night ? "rgba(190,230,140," : "rgba(255,236,170,",
+    });
+  }
+}
+function spawnCelebrate(spec) {
+  const col = spec.bloom ? spec.flowers[0] : spec.leaves[0];
+  const count = reducedMotion ? 14 : 36;
+  const cx = cw * 0.5, cy = ch * GROUND_Y - ch * 0.28;
+  for (let i = 0; i < count; i++) {
+    state.particles.push({
+      kind: "petal",
+      x: cx + (Math.random() - 0.5) * cw * 0.3,
+      y: cy - Math.random() * ch * 0.12,
+      vx: (Math.random() - 0.5) * 1.6,
+      vy: 0.4 + Math.random() * 1.2,
+      r: 2.5 + Math.random() * 2.5,
+      phase: Math.random() * Math.PI * 2,
+      rot: Math.random() * Math.PI * 2,
+      vr: (Math.random() - 0.5) * 0.15,
+      color: col,
+      life: 1,
+      drift: (Math.random() - 0.5) * 0.03,
+    });
+  }
+}
+function drawParticles() {
+  const p = state.particles;
+  for (let i = p.length - 1; i >= 0; i--) {
+    const pt = p[i];
+    if (pt.kind === "light" || pt.kind === "firefly") {
+      pt.x += pt.vx + Math.sin(pt.phase) * 0.15;
+      pt.y += pt.vy;
+      pt.phase += 0.02;
+      const tw = pt.kind === "firefly" ? 0.4 + 0.6 * Math.abs(Math.sin(pt.phase * 2.2)) : 1;
+      if (pt.x < -6) pt.x = cw + 6; if (pt.x > cw + 6) pt.x = -6;
+      if (pt.y < -6) pt.y = ch * 0.72; if (pt.y > ch * 0.75) pt.y = -6;
+      ctx.fillStyle = pt.color + (0.55 * tw).toFixed(2) + ")";
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI * 2); ctx.fill();
+    } else if (pt.kind === "petal") {
+      pt.x += pt.vx + Math.sin(pt.phase * 1.4) * 0.5;
+      pt.y += pt.vy;
+      pt.phase += pt.drift * 10 + 0.03;
+      pt.rot += pt.vr;
+      pt.life -= 0.0022;
+      if (pt.y > ch * GROUND_Y + 14 || pt.life <= 0) { p.splice(i, 1); continue; }
+      ctx.save();
+      ctx.translate(pt.x, pt.y);
+      ctx.rotate(pt.rot);
+      ctx.fillStyle = pt.color;
+      ctx.globalAlpha = Math.min(1, pt.life * 1.6);
+      ctx.beginPath(); ctx.ellipse(0, 0, pt.r, pt.r * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+
+/* ================================================================
+   生长主循环
+   ================================================================ */
+function startGrow() {
+  const spec = state.species;
+  state.durationMs = (10 + Math.floor(Math.random() * 21)) * 1000; // 10–30 秒
+  state.startedAt = performance.now();
+  state.pauseOffset = 0;
+  state.pausedAt = 0;
+  state.particles = [];
+  $("grow-name").textContent = spec.name;
+  $("grow-rarity").textContent = RARITY[spec.rarity].label;
+  $("grow-rarity").style.background = RARITY[spec.rarity].color;
+  $("grow-clock").textContent = "约 " + Math.round(state.durationMs / 1000) + " 秒";
+  $("progress-fill").style.width = "0%";
+  $("progress-pct").textContent = "0%";
+  $("mound").classList.remove("show");
+  spawnAmbient();
+  showView("grow");
+  cancelAnimationFrame(state.raf);
+  state.raf = requestAnimationFrame(loop);
+}
+
+function loop(now) {
+  const spec = state.species;
+  const elapsed = now - state.startedAt - state.pauseOffset;
+  const p = Math.min(1, elapsed / state.durationMs);
+
+  clearCanvas();
+  // 背景氛围粒子
+  drawParticles();
+  // 生长阶段：种子 → 芽 → 树
+  if (p < 0.05) {
+    drawSeed(spec, p / 0.05);
+    $("mound").classList.add("show");
+  } else if (p < 0.1) {
+    drawSprout(spec, (p - 0.05) / 0.05);
+    $("mound").classList.add("show");
+  } else {
+    $("mound").classList.remove("show");
+    const g = (p - 0.1) / 0.9;
+    drawTree(spec, g);
+    // 菩提灵光
+    if (spec.glow && g > 0.6) {
+      ctx.save();
+      ctx.globalAlpha = (g - 0.6) * 0.5;
+      ctx.fillStyle = "rgba(190,240,180,.5)";
+      const cr = (10 + g * 46) * (Math.min(cw, ch) / 170);
+      ctx.beginPath();
+      ctx.arc(cw * 0.5, ch * GROUND_Y - ch * 0.3, cr, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // UI 更新
+  $("progress-fill").style.width = Math.round(p * 100) + "%";
+  $("progress-pct").textContent = Math.round(p * 100) + "%";
+  const remain = Math.max(0, Math.ceil(state.durationMs * (1 - p) / 1000));
+  $("grow-clock").textContent = "约 " + remain + " 秒";
+  const tip = p < 0.28 ? "种子正在破土…" : (p < 0.72 ? "根系扎稳，枝干伸展…" : "枝叶舒展，就要长成了…");
+  $("grow-tip").textContent = tip;
+
+  if (p >= 1) {
+    // 完成
+    if (!state._celebrated) {
+      state._celebrated = true;
+      spawnCelebrate(spec);
+      addCollect(spec.id);
+      refreshGardenUI();
+      setTimeout(() => {
+        if (state.view === "grow") showDone();
+      }, 900);
+    }
+    // 花瓣飘完后定格树，停止主循环（省电）
+    const hasPetal = state.particles.some(pt => pt.kind === "petal");
+    if (hasPetal) {
+      state.raf = requestAnimationFrame(loop);
+    } else {
+      clearCanvas();
+      drawParticles();
+      drawTree(spec, 1);
+      $("progress-fill").style.width = "100%";
+      $("progress-pct").textContent = "100%";
+      $("grow-clock").textContent = "长成了";
+    }
+  } else {
+    state.raf = requestAnimationFrame(loop);
+  }
+}
+
+/* ---------- 完成屏 ---------- */
+function showDone() {
+  const spec = state.species;
+  $("done-name").textContent = spec.name;
+  $("done-kicker").textContent = RARITY[spec.rarity].label + " · 已收录林园";
+  $("done-desc").textContent = spec.poem;
+  $("done-count").textContent = state.collect.total;
+  showView("done");
+}
+
+/* ---------- 抽卡 ---------- */
+function pickAndShow() {
+  state.species = pickSpecies();
+  state.seed = (Math.random() * 0xffffffff) >>> 0;
+  pickSky();
+  const spec = state.species;
+  const r = RARITY[spec.rarity];
+  $("card-rarity").textContent = r.label;
+  $("card-rarity").style.background = r.color;
+  $("card-seed-svg").innerHTML = seedSVG(spec);
+  $("card-name").textContent = spec.name;
+  $("card-poem").textContent = spec.poem;
+  $("card-tag").textContent = spec.tag;
+  $("seed-card").classList.remove("flipped");
+  state.cardFlipped = false;
+  $("btn-flip").classList.remove("hidden");
+  $("btn-plant").classList.add("hidden");
+  showView("card");
+}
+
+function seedSVG(spec) {
+  const c = spec.seedColor;
+  return '<svg viewBox="0 0 128 128" fill="none" aria-hidden="true">' +
+    '<ellipse cx="64" cy="76" rx="30" ry="22" fill="' + c + '"/>' +
+    '<ellipse cx="64" cy="76" rx="30" ry="22" fill="url(#sg)' + '" opacity=".25"/>' +
+    '<path d="M64 56v-8" stroke="#5e9c54" stroke-width="5" stroke-linecap="round"/>' +
+    '<path d="M64 50c-2-9-12-12-14-20 7 4 13 6 14 10z" fill="#8fce6a"/>' +
+    '<path d="M64 46c2-9 12-12 14-20-7 4-13 6-14 10z" fill="#6fae62"/>' +
+    '<path d="M44 76q20 10 40 0" stroke="rgba(0,0,0,.18)" stroke-width="3" fill="none" stroke-linecap="round"/>' +
+    '<defs><radialGradient id="sg" cx=".4" cy=".3" r="1">' +
+    '<stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs></svg>';
+}
+
+/* ---------- 图鉴 ---------- */
+function treeIconSVG(spec, seen) {
+  const col = seen ? (spec.leaves[0]) : "#b9b2a4";
+  const trunk = seen ? spec.trunkColor : "#b9b2a4";
+  return '<svg viewBox="0 0 64 64" fill="none" aria-hidden="true">' +
+    '<path d="M32 54V38" stroke="' + trunk + '" stroke-width="4" stroke-linecap="round"/>' +
+    '<path d="M32 42c-5-9-16-11-18-21 9 4 16 7 18 12z" fill="' + col + '"/>' +
+    '<path d="M32 37c5-9 16-11 18-21-9 4-16 7-18 12z" fill="' + col + '"/>' +
+    '<path d="M32 30c-4-7-12-9-14-16 7 3 12 5 14 9z" fill="' + col + '"/>' +
+    '<path d="M32 27c4-7 12-9 14-16-7 3-12 5-14 9z" fill="' + col + '"/>' +
+    '</svg>';
+}
+function refreshGardenUI() {
+  const total = state.collect.total;
+  $("garden-count").textContent = total;
+  $("done-count").textContent = total;
+  $("collect-num").textContent = total + "/8";
+  $("collect-fill").style.width = (total / 8 * 100) + "%";
+  const grid = $("grid");
+  grid.innerHTML = "";
+  SPECIES.forEach(sp => {
+    const seen = !!state.collect.collected[sp.id];
+    const item = document.createElement("div");
+    item.className = "grid-item " + (seen ? "seen" : "unseen");
+    if (seen) {
+      item.innerHTML = '<div class="grid-icon">' + treeIconSVG(sp, true) + '</div>' +
+        '<div class="grid-name">' + sp.name + '</div>' +
+        '<div class="grid-rarity">' + RARITY[sp.rarity].label + "</div>";
+    } else {
+      item.innerHTML = '<div class="grid-question">?</div>' +
+        '<div class="grid-name">未知树种</div>' +
+        '<div class="grid-rarity">尚未收集</div>';
+    }
+    grid.appendChild(item);
+  });
+}
+function openCollection() {
+  refreshGardenUI();
+  $("overlay-collection").classList.add("active");
+}
+function closeCollection() {
+  $("overlay-collection").classList.remove("active");
+}
+
+/* ---------- 重新开始 ---------- */
+function resetGame() {
+  cancelAnimationFrame(state.raf);
+  state.particles = [];
+  state._celebrated = false;
+  state.pausedAt = 0;
+  $("mound").classList.remove("show");
+  clearCanvas();
+  closeCollection();
+  pickAndShow();
+}
+
+/* ---------- 暂停 / 恢复（切后台） ---------- */
+document.addEventListener("visibilitychange", () => {
+  if (state.view !== "grow") return;
+  if (document.hidden) {
+    if (state.raf) cancelAnimationFrame(state.raf);
+    state.pausedAt = performance.now();
+  } else if (state.pausedAt) {
+    state.pauseOffset += performance.now() - state.pausedAt;
+    state.pausedAt = 0;
+    state.raf = requestAnimationFrame(loop);
+  }
+});
+
+/* ---------- 事件绑定 ---------- */
+$("btn-pick").addEventListener("click", pickAndShow);
+$("btn-flip").addEventListener("click", () => {
+  $("seed-card").classList.add("flipped");
+  state.cardFlipped = true;
+  $("btn-flip").classList.add("hidden");
+  $("btn-plant").classList.remove("hidden");
+});
+$("btn-plant").addEventListener("click", startGrow);
+$("btn-again").addEventListener("click", resetGame);
+$("btn-garden").addEventListener("click", openCollection);
+$("btn-garden-done").addEventListener("click", openCollection);
+$("btn-close-collection").addEventListener("click", closeCollection);
+$("btn-back-plant").addEventListener("click", resetGame);
+
+/* ---------- 启动 ---------- */
+resizeCanvas();
+pickSky();
+refreshGardenUI();
+</script>
+</body>
+</html>
